@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_URL=postgres://user:supersecretpassword@postgres-db:5432/mydb
+      - CACHE_URL=redis://cache:6379
+    depends_on:
+      - auth-worker
+      - cache
+
+  auth-worker:
+    image: node:18-alpine
+    command: node app.js
+    environment:
+      - DB_URL=postgres://user:supersecretpassword@postgres-db:5432/mydb
+    depends_on:
+      - postgres-db
+
+  cache:
+    image: redis:alpine
+
+  legacy-cache:
+    image: memcached:latest
+    # VULNERABILITY: Orphaned service with no dependent links
+
+  postgres-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_DB: mydb
+    # VULNERABILITY: Exposing internal DB to the host network
+    ports:
+      - "5432:5432"

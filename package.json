@@ -1,0 +1,14 @@
+{
+  "name": "insecure-demo-app",
+  "version": "1.0.0",
+  "description": "Vulnerable Node.js application for AI Auditor demonstration",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "lodash": "4.17.15",
+    "pg": "^8.11.0"
+  }
+}

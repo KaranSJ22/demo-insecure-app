@@ -1,0 +1,29 @@
+name: DevSecOps Pipeline (Insecure Demo)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  security-audit-and-test:
+    name: Security Scan & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Application Dependencies
+        run: npm install
+
+      # VULNERABILITY: This will fail due to lodash and express CVEs
+      - name: Run Software Composition Analysis (SCA)
+        run: npm audit --audit-level=high
+        
+      - name: Build Docker Container
+        run: docker build -t insecure-demo-app .

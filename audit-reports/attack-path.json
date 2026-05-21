@@ -1,0 +1,309 @@
+{
+  "generatedAt": "2026-05-21T06:47:16.751Z",
+  "summary": {
+    "services": 5,
+    "publicEntryPoints": 2,
+    "totalRisks": 11,
+    "highRiskPaths": 4
+  },
+  "graph": {
+    "api-gateway": {
+      "image": null,
+      "ports": [
+        "3000:3000"
+      ],
+      "dependencies": [
+        "auth-worker",
+        "cache",
+        "postgres-db"
+      ],
+      "environment": {
+        "DB_URL": "postgres://user:supersecretpassword@postgres-db:5432/mydb",
+        "CACHE_URL": "redis://cache:6379"
+      },
+      "volumes": [],
+      "networks": [],
+      "user": null,
+      "privileged": false,
+      "networkMode": null,
+      "hasHealthcheck": false,
+      "isCriticalAsset": false,
+      "assetType": "service",
+      "isPublicEntry": true,
+      "isVulnerable": true,
+      "risks": [
+        {
+          "id": "MISSING_HEALTHCHECK",
+          "severity": "LOW",
+          "message": "Service \"api-gateway\" has no healthcheck, reducing deployment safety and dependency reliability.",
+          "remediation": "Add a healthcheck that verifies the service is ready before dependent services start."
+        },
+        {
+          "id": "RUNS_AS_ROOT",
+          "severity": "MEDIUM",
+          "message": "Service \"api-gateway\" does not define a non-root user.",
+          "remediation": "Set a least-privilege user in the image or compose service definition."
+        }
+      ]
+    },
+    "auth-worker": {
+      "image": "node:18-alpine",
+      "ports": [],
+      "dependencies": [
+        "postgres-db"
+      ],
+      "environment": {
+        "DB_URL": "postgres://user:supersecretpassword@postgres-db:5432/mydb"
+      },
+      "volumes": [],
+      "networks": [],
+      "user": null,
+      "privileged": false,
+      "networkMode": null,
+      "hasHealthcheck": false,
+      "isCriticalAsset": false,
+      "assetType": "service",
+      "isPublicEntry": false,
+      "isVulnerable": true,
+      "risks": [
+        {
+          "id": "MISSING_HEALTHCHECK",
+          "severity": "LOW",
+          "message": "Service \"auth-worker\" has no healthcheck, reducing deployment safety and dependency reliability.",
+          "remediation": "Add a healthcheck that verifies the service is ready before dependent services start."
+        },
+        {
+          "id": "RUNS_AS_ROOT",
+          "severity": "MEDIUM",
+          "message": "Service \"auth-worker\" does not define a non-root user.",
+          "remediation": "Set a least-privilege user in the image or compose service definition."
+        }
+      ]
+    },
+    "cache": {
+      "image": "redis:alpine",
+      "ports": [],
+      "dependencies": [],
+      "environment": {},
+      "volumes": [],
+      "networks": [],
+      "user": null,
+      "privileged": false,
+      "networkMode": null,
+      "hasHealthcheck": false,
+      "isCriticalAsset": true,
+      "assetType": "data-store",
+      "isPublicEntry": false,
+      "isVulnerable": true,
+      "risks": [
+        {
+          "id": "RUNS_AS_ROOT",
+          "severity": "MEDIUM",
+          "message": "Service \"cache\" does not define a non-root user.",
+          "remediation": "Set a least-privilege user in the image or compose service definition."
+        }
+      ]
+    },
+    "legacy-cache": {
+      "image": "memcached:latest",
+      "ports": [],
+      "dependencies": [],
+      "environment": {},
+      "volumes": [],
+      "networks": [],
+      "user": null,
+      "privileged": false,
+      "networkMode": null,
+      "hasHealthcheck": false,
+      "isCriticalAsset": true,
+      "assetType": "data-store",
+      "isPublicEntry": false,
+      "isVulnerable": true,
+      "risks": [
+        {
+          "id": "RUNS_AS_ROOT",
+          "severity": "MEDIUM",
+          "message": "Service \"legacy-cache\" does not define a non-root user.",
+          "remediation": "Set a least-privilege user in the image or compose service definition."
+        },
+        {
+          "id": "FLOATING_IMAGE_TAG",
+          "severity": "MEDIUM",
+          "message": "Service \"legacy-cache\" uses the floating image tag \"memcached:latest\".",
+          "remediation": "Pin images to immutable version tags or digests for repeatable builds."
+        },
+        {
+          "id": "ORPHANED_SERVICE",
+          "severity": "LOW",
+          "message": "Service \"legacy-cache\" has no connections to or from any other service.",
+          "remediation": "Remove the service if unused, or define the missing dependency/network relationship."
+        }
+      ]
+    },
+    "postgres-db": {
+      "image": "postgres:13",
+      "ports": [
+        "5432:5432"
+      ],
+      "dependencies": [],
+      "environment": {
+        "POSTGRES_USER": "user",
+        "POSTGRES_PASSWORD": "supersecretpassword",
+        "POSTGRES_DB": "mydb"
+      },
+      "volumes": [],
+      "networks": [],
+      "user": null,
+      "privileged": false,
+      "networkMode": null,
+      "hasHealthcheck": false,
+      "isCriticalAsset": true,
+      "assetType": "data-store",
+      "isPublicEntry": true,
+      "isVulnerable": true,
+      "risks": [
+        {
+          "id": "EXPOSED_STATE_STORE",
+          "severity": "HIGH",
+          "message": "Internal data-store \"postgres-db\" exposes port(s) [5432:5432] to the host network.",
+          "remediation": "Remove host port mappings from internal stateful services and expose them only on private Docker networks."
+        },
+        {
+          "id": "PLAINTEXT_SECRET",
+          "severity": "HIGH",
+          "message": "Service \"postgres-db\" defines likely secrets in environment variables: POSTGRES_PASSWORD.",
+          "remediation": "Move secrets into a secret manager or Docker/Kubernetes secrets and inject them at runtime."
+        },
+        {
+          "id": "RUNS_AS_ROOT",
+          "severity": "MEDIUM",
+          "message": "Service \"postgres-db\" does not define a non-root user.",
+          "remediation": "Set a least-privilege user in the image or compose service definition."
+        }
+      ]
+    }
+  },
+  "publicEntryPoints": [
+    {
+      "service": "api-gateway",
+      "ports": [
+        "3000:3000"
+      ],
+      "reason": "Exposes host port(s): 3000:3000"
+    },
+    {
+      "service": "postgres-db",
+      "ports": [
+        "5432:5432"
+      ],
+      "reason": "Exposes host port(s): 5432:5432"
+    }
+  ],
+  "blastRadius": {
+    "api-gateway": {
+      "service": "api-gateway",
+      "score": 32,
+      "severity": "CRITICAL",
+      "reachableServices": [
+        "auth-worker",
+        "cache",
+        "postgres-db"
+      ],
+      "reachableCriticalAssets": [
+        "cache",
+        "postgres-db"
+      ],
+      "directDependencies": [
+        "auth-worker",
+        "cache",
+        "postgres-db"
+      ],
+      "riskCount": 2
+    },
+    "auth-worker": {
+      "service": "auth-worker",
+      "score": 16,
+      "severity": "HIGH",
+      "reachableServices": [
+        "postgres-db"
+      ],
+      "reachableCriticalAssets": [
+        "postgres-db"
+      ],
+      "directDependencies": [
+        "postgres-db"
+      ],
+      "riskCount": 2
+    },
+    "cache": {
+      "service": "cache",
+      "score": 4,
+      "severity": "LOW",
+      "reachableServices": [],
+      "reachableCriticalAssets": [],
+      "directDependencies": [],
+      "riskCount": 1
+    },
+    "legacy-cache": {
+      "service": "legacy-cache",
+      "score": 9,
+      "severity": "MEDIUM",
+      "reachableServices": [],
+      "reachableCriticalAssets": [],
+      "directDependencies": [],
+      "riskCount": 3
+    },
+    "postgres-db": {
+      "service": "postgres-db",
+      "score": 23,
+      "severity": "HIGH",
+      "reachableServices": [],
+      "reachableCriticalAssets": [],
+      "directDependencies": [],
+      "riskCount": 3
+    }
+  },
+  "highRiskPaths": [
+    {
+      "source": "api-gateway",
+      "target": "cache",
+      "path": [
+        "api-gateway",
+        "cache"
+      ],
+      "severity": "CRITICAL",
+      "reason": "\"api-gateway\" can reach critical data-store \"cache\"."
+    },
+    {
+      "source": "api-gateway",
+      "target": "postgres-db",
+      "path": [
+        "api-gateway",
+        "postgres-db"
+      ],
+      "severity": "CRITICAL",
+      "reason": "\"api-gateway\" can reach critical data-store \"postgres-db\"."
+    },
+    {
+      "source": "api-gateway",
+      "target": "postgres-db",
+      "path": [
+        "api-gateway",
+        "auth-worker",
+        "postgres-db"
+      ],
+      "severity": "CRITICAL",
+      "reason": "\"api-gateway\" can reach critical data-store \"postgres-db\"."
+    },
+    {
+      "source": "auth-worker",
+      "target": "postgres-db",
+      "path": [
+        "auth-worker",
+        "postgres-db"
+      ],
+      "severity": "HIGH",
+      "reason": "\"auth-worker\" can reach critical data-store \"postgres-db\"."
+    }
+  ]
+}
